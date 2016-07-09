@@ -1,0 +1,111 @@
+﻿---------------------------------------------------------
+(1) httpd のインストール
+# yum install -y httpd
+
+(2) HTTPサービスの起動
+
+サービスの確認
+# systemctl status httpd
+# ss -nat
+
+サービスの起動
+# systemctl start httpd.service
+# systemctl status httpd.service
+
+
+(3) 自動起動サービスの登録
+# systemctl list-unit-files | grep httpd
+# systemctl enable httpd.service
+
+設定ファイル ( /etc/httpd/conf/httpd.conf )
+
+
+----------------------------------------------------------
+ファイアウォール
+# iptables -L
+# systemctl status firewalld
+# systemctl list-unit-files | grep firewall
+# systemctl disable firewalld.service
+
+設定内容を確認
+# firewall-cmd --list-all
+アクセス許可の設定
+# firewall-cmd --permanent --add-service=http
+サービスの再起動
+# firewall-cmd --reload
+設定を削除
+# firewall-cmd --permanent --remove-service=http
+ポートによるアクセス許可の設定
+# firewall-cmd --permanent --add-port=80/tcp
+設定ファイル
+/etc/firewalld/zones/*.xml
+
+# systemctl restart firewalld.service
+
+設定後の状態
+# iptables -L -n --line-number
+
+
+----------------------------------------------------------
+SSLによるアクセス許可を追加
+
+# firewall-cmd --permanent --add-service=https
+# firewall-cmd --permanent --add-port=443/tcp
+
+ /etc/httpd/conf.d/ssl.conf
+# 59行目：コメント解除
+DocumentRoot "/var/www/html"
+# 60行目：コメント解除しサーバー名指定
+ServerName www.srv.world:443
+# 75行目：変更
+SSLProtocol -All +TLSv1 +TLSv1.1 +TLSv1.2
+# 100行目：証明書指定
+SSLCertificateFile /etc/pki/tls/certs/server.crt
+# 107行目：鍵ファイル指定
+SSLCertificateKeyFile /etc/pki/tls/certs/server.key
+[root@www ~]# systemctl restart httpd 
+
+
+
+------------------------------------------------------------
+SSL cert
+[root@www ~]# cd /etc/pki/tls/certs 
+[root@www certs]# make server.key 
+umask 77 ; \
+/usr/bin/openssl genrsa -aes128 2048 > server.key
+Generating RSA private key, 2048 bit long modulus
+...
+...
+e is 65537 (0x10001)
+Enter pass phrase:     # パスフレーズ設定
+Verifying - Enter pass phrase:     # 再入力
+# 秘密鍵からパスフレーズを削除
+[root@www certs]# openssl rsa -in server.key -out server.key 
+Enter pass phrase for server.key:     # パスフレーズ入力
+writing RSA key
+[root@www certs]# make server.csr 
+umask 77 ; \
+/usr/bin/openssl req -utf8 -new -key server.key -out server.csr
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [XX]:JP     # 国
+State or Province Name (full name) []:Hiroshima     # 地域（県）
+Locality Name (eg, city) [Default City]:Hiroshima     # 都市
+Organization Name (eg, company) [Default Company Ltd]:GTS     # 組織名
+Organizational Unit Name (eg, section) []:Server World     # 組織の部門名
+Common Name (eg, your name or your server's hostname) []:www.srv.world     # サーバーのFQDN
+Email Address []:xxx@srv.world     # 管理者アドレス
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:     # Enter
+An optional company name []:     # Enter
+# 有効期限が10年の自己署名証明書を作成
+[root@www certs]# openssl x509 -in server.csr -out server.crt -req -signkey server.key -days 3650
+Signature ok
+subject=/C=JP/ST=Hiroshima/L=Hiroshima/O=GTS/OU=Server World/CN=www.srv.world/emailAddress=xxx@srv.world
+Getting Private key

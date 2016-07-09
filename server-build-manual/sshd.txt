@@ -1,0 +1,63 @@
+﻿SSHサーバがインストールされているかどうかを調べる
+# /usr/sbin/sshd --help
+
+公開鍵のリストの置き場所があるか調べる
+# cd /home/{user}/.ssh
+
+なければ作成する
+# mkdir /home/{user}/.ssh
+# chmod 700 /home/{user}/.ssh
+
+認証用の公開鍵、秘密鍵を生成する(一般ユーザーで)(パスフレーズは任意で)
+# ssh-keygen -t rsa
+
+公開鍵のリストがあるか調べる(クリーンインストール後なのでないはず)
+# cat /home/{user}/.ssh/authorized_keys
+
+公開鍵をauthorized_keysに追加する
+# mv id_rsa.pub authorized_keys
+(既存のリストに追加の場合はcat id_rsa.pub >> authorized_keys)
+
+パーミッションを変更(ユーザーのみrw可)
+# chmod 600 authorized_keys
+
+なお、外部で作成した公開鍵を使用することも可能だが、鍵ファイルの形式が異なる場合があるため注意（puttyで作成したputty形式の鍵を使おうとして難儀しました。ここではOpenSSH形式の鍵が生成されます。また、鍵形式の変換も可能ではあります）。
+
+SSHの設定ファイルの編集
+# su
+# vi /etc/ssh/sshd_config
+
+以下を設定(ポート番号は任意)
+PasswordAuthentication no
+PermitRootLogin no
+PermitEmptyPassword no
+#Port 9922 -- 未設定
+
+ユーザーを一般ユーザーに変更
+# su {user}
+
+SSHサーバを再起動
+# service sshd restart
+
+秘密鍵をUSBメモリ等にコピーして完了。
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+# アクセスログ確認
+/var/log/messages
+
+# logs to /var/log/secure
+This is controlled through /etc/ssh/sshd_config:
+
+# Logging
+# obsoletes QuietMode and FascistLogging
+#SyslogFacility AUTH
+SyslogFacility AUTHPRIV
+#LogLevel INFO
+As well as the contents of /etc/rsyslog.conf:
+
+# Log anything (except mail) of level info or higher.
+# Don't log private authentication messages!
+*.info;mail.none;authpriv.none;cron.none                /var/log/messages
+
+# The authpriv file has restricted access.
+authpriv.*                                              /var/log/secure

@@ -1,0 +1,43 @@
+﻿#以下のNICをeno1とする
+
+#########################################################################
+#GUI経由でネットワーク周りの変更を実施
+nmtui
+
+#起動した画面で以下の値を設定
+Addresses: 192.168.0.2/24
+Gateway: 192.168.0.1
+Search domains: 192.168.0.2 #暫定
+#TODO: 8.8.8.8を追加
+
+#設定反映
+systemctl restart NetworkManager
+#結果確認
+ip addr
+
+
+#########################################################################
+#コマンドラインの場合
+#確認
+nmcli connection show eno1
+#IPアドレス、GW
+nmcli connection modify eno1 ipv4.addresses "192.168.0.2/24 192.168.0.1"
+
+#DNSサーバ
+nmcli connection modify eno1 ipv4.dns "192.168.0.2 8.8.8.8"
+
+#StaticRouteの追加
+nmcli connection modify eno1 ipv4.routes "192.168.0.0/24 192.168.0.1"
+#反映できない場合、以下のコマンド
+nmcli connection down eno1;nmcli connection up eno1
+
+
+#接続情報変更
+#DHCP OFF
+nmcli connection modify eno1 ipv4.method "manual"
+#自動起動
+nmcli connection modify eno1 connection.autoconnect "yes"
+#再起動
+nmcli connection down eno1;nmcli connection up eno1
+#または
+nmcli device disconnect eno1;nmcli device connect eno1
