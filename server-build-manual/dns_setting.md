@@ -27,8 +27,8 @@ options {
         dump-file       "/var/named/data/cache_dump.db";
         statistics-file "/var/named/data/named_stats.txt";
         memstatistics-file "/var/named/data/named_mem_stats.txt";
-        allow-query     { localhost; localnets; };  # <= 変更(ローカルホスト、ローカルネットからの問合せのみ許可)
-        recursion yes;
+        #allow-query     { localhost; localnets; };  # <= 変更(ローカルホスト、ローカルネットからの問合せのみ許可)
+        #recursion yes;
         empty-zones-enable no;   # <= 追加（起動時の空ゾーンエラーログの出力無効化）
 
         dnssec-enable no;        # <= 変更（DNSSEC 非対応なので）
@@ -38,7 +38,8 @@ options {
         /* Path to ISC DLV key */
         bindkeys-file "/etc/named.iscdlv.key";
         forwarders{            # <= 追加
-                192.168.0.1;  # <= 追加（ルータの IP アドレス）
+                aaa.bbb.ccc.ddd;  # <= 追加（ルータの IP アドレス）
+                aa2.bb2.cc2.dd2;  # <= 追加（ISPの IP アドレス）
         };                     # <= 追加
 
         managed-keys-directory "/var/named/dynamic";
@@ -47,36 +48,63 @@ options {
         session-keyfile "/run/named/session.key";
 };
 
-logging {
-        channel default_debug {
-                file "data/named.run";
-                severity dynamic;
+#logging {
+#        channel default_debug {
+#                file "data/named.run";
+#                severity dynamic;
+#        };
+#        category lame-servers { null; };  # <= 追加（エラーログの出力制御）
+#};
+logging {					
+        channel default_debug {					
+					
+                file "/var/log/error.log";					
+                severity dynamic;					
+        };					
+       channel "log_queries" {					
+               file "/var/log/queries.log";					
+               severity info;					
+               print-time yes;					
+               print-category yes;					
+       };					
+       category queries { "log_queries"; };					
+};
+
+view "internal" {						
+        match-clients {localnets; 192.168.0.0/24; aa4.bb4.cc4.0/20;};						
+        recursion yes;						
+        include "/etc/named.rfc1912.zones";						
+						
+        zone "xxx-domain" {						
+                type master;						
+                file "/var/named/xxx-domain-in.db";						
+                allow-update {none;};						
         };
-        category lame-servers { null; };  # <= 追加（エラーログの出力制御）
+        zone "0.168.192.in-addr.arpa" {						
+                type master;						
+                file "/var/named/0.168.192.in-addr.arpa.db";						
+                allow-update {none;};						
+        };						
 };
 
 view "external" {                                   # <= 追加（固定 IP 環境なので）
         match-clients { any; };                     # <= 追加（固定 IP 環境なので）
         match-destinations { any; };                # <= 追加（固定 IP 環境なので）
         recursion no;                               # <= 追加（固定 IP 環境なので）
-        include "/etc/named.xxx-domain.zone";  # <= 追加（固定 IP 環境なので）
-};     
-```
+        
+        zone "xxx-domain.com" {
+                type master;
+                file "xxx-domain-ex.db";
+                allow-query { any; };
+        };
+        zone "ccc.bbb.aaa.in-addr.arpa" {
+                type master;
+                file "ccc.bbb.aaa.in-addr.arpa.db";
+                allow-query { any; };
+        };
+};
 
----------------------------------------------------
-### ゾーン定義ファイル
-/var/named/chroot/etc/named.xxx-domain.zone設定
-```
-zone "xxx-domain.com" {
-        type master;
-        file "xxx-domain.db";
-        allow-query { any; };
-};
-zone "ccc.bbb.aaa.in-addr.arpa" {
-        type master;
-        file "ccc.bbb.aaa.in-addr.arpa.db";
-        allow-query { any; };
-};
+include "/etc/rndc.key";								
 ```
 
 ### ルートゾーン最新化
@@ -85,7 +113,23 @@ dig . ns @198.41.0.4 +bufsize=1024 > /var/named/chroot/var/named/named.ca
 ```
 
 ### 正引きゾーンデータベース
-/var/named/chroot/var/named/xxx-domain.db設定
+/var/named/chroot/var/named/xxx-domain-in.db設定
+```
+$TTL    86400
+@       IN      SOA     ns1.xxx-domain.  root.ns1.xxx-domain.(
+                                      2016071501 ; Serial
+                                      7200       ; Refresh
+                                      7200       ; Retry
+                                      2419200    ; Expire
+                                      86400 )    ; Minimum
+        IN NS    ns1.xxx-domain.
+        IN MX 10 ns1.xxx-domain.com.
+ns1     IN A     aa2.bb2.cc2.dd2
+www     IN CNAME     ns1
+mail    IN CNAME     ns1
+```
+
+/var/named/chroot/var/named/xxx-domain-ex.db設定
 ```
 $TTL    86400
 @       IN      SOA     ns1.xxx-domain.  root.xxx-domain.(
@@ -95,26 +139,24 @@ $TTL    86400
                                       2419200    ; Expire
                                       86400 )    ; Minimum
         IN NS    ns1.xxx-domain.
-        IN MX 10 xxx-domain.com.
+        IN MX 10 ns1.xxx-domain.com.
 ns1     IN A     aaa.bbb.ccc.ddd
-@       IN A     aaa.bbb.ccc.ddd
-www     IN A     aaa.bbb.ccc.ddd
-ftp     IN A     aaa.bbb.ccc.ddd
-mail    IN A     aaa.bbb.ccc.ddd
-xxx-domain. IN TXT "v=spf1 ip4:aaa.bbb.ccc.ddd ~all"
+www     IN CNAME     ns1
+mail    IN CNAME     ns1
+#xxx-domain. IN TXT "v=spf1 ip4:aaa.bbb.ccc.ddd ~all"
 ```
 
 ### 逆引きゾーンデータベース
 /var/named/chroot/var/named/ccc.bbb.aaa.in-addr.arpa.db
 ```
 $TTL    86400
-@       IN      SOA     xxx-domain.com. root.xxx-domain.(
+@       IN      SOA     ns1.xxx-domain.com. root.ns1.xxx-domain.(
                         2016071501      ; serial
                         3600            ; refresh (1 hour)
                         900             ; retry (15 minutes)
                         604800          ; expire (1 week)
                         86400           ; negative (1 day)
 )
-        IN      NS              xxx-domain.
-ddd     IN      PTR             xxx-domain.
+        IN      NS              ns1.xxx-domain.
+ddd     IN      PTR             ns1.xxx-domain.
 ```
