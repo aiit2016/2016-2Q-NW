@@ -25,8 +25,10 @@ systemctl enable named-chroot ← 自動起動設定
 ```
 
 ### 名前解決確認
+```
 dig www.xxx.x
 dig -x nnn.nnn.nnn.nnn
+```
 
 
 -----------------------------------------
@@ -58,11 +60,25 @@ access-control: 172.16.0.0/20 allow
 # DNS name Change
 #
 # ローカルのサーバの名前とIPアドレスの対応を登録
-local-data: "net03.xxx.local. IN A 172.16.0.dd6"
-local-data-ptr: "172.16.0.dd6 net03.xxx.local."
+local-zone: "net03.xxx.local." static
+local-data: "indns.net03.xxx.local. IN A 172.16.0.dd6"
+local-data-ptr: "172.16.0.dd6 indns.net03.xxx.local."
+
+local-zone: "0.168.192.in-addr.arpa." transparent
+
+stub-zone:
+    name: "xx-domain."
+    stub-addr: 192.168.0.dd3
+    #stub-host: xx-domain.
+stub-zone:
+    name: "0.168.192.in-addr.arpa."
+    stub-addr: 192.168.0.4
 
 # Enable IPv6, "yes" or "no".
 do-ip6: no
+
+# hide-version, "yes" or "no".
+hide-version: yes
 ```
 
 ### 鍵ファイルの作成
@@ -83,7 +99,7 @@ firewall-cmd --add-service=dns --permanent
 firewall-cmd --reload
 ```
 
-### BIND起動
+### unbound起動
 ```
 systemctl start unbound
 systemctl is-active unbound
@@ -91,5 +107,7 @@ systemctl enable unbound ← 自動起動設定
 ```
 
 ### 名前解決確認
+```
 dig www.xxx.x
 dig -x nnn.nnn.nnn.nnn
+```
