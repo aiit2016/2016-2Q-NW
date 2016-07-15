@@ -20,6 +20,8 @@ mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
 mynetworks = 192.168.0.0/24, 127.0.0.1
 home_mailbox = Maildir/
 
+smtpd_banner = $myhostname ESMTP unknown
+
 smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination
 ```
 
