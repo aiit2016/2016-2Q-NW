@@ -40,46 +40,7 @@ yum -y install unbound
 ```
 
 ### 設定
-/etc/unbound/local.d/local.conf
-```
-#
-# Interfaces Settings
-#
-interface: 127.0.0.1
-#interface: 172.16.10.251
-#interface: 172.16.10.252
-interface: 172.16.cc5.dd5
- 
-#
-# local Network Settings
-#
-access-control: 127.0.0.1 allow
-access-control: 172.16.0.0/20 allow
-
-#
-# DNS name Change
-#
-# ローカルのサーバの名前とIPアドレスの対応を登録
-local-zone: "net03.xxx.local." static
-local-data: "indns.net03.xxx.local. IN A 172.16.0.dd6"
-local-data-ptr: "172.16.0.dd6 indns.net03.xxx.local."
-
-local-zone: "0.168.192.in-addr.arpa." transparent
-
-stub-zone:
-    name: "xx-domain."
-    stub-addr: 192.168.0.dd3
-    #stub-host: xx-domain.
-stub-zone:
-    name: "0.168.192.in-addr.arpa."
-    stub-addr: 192.168.0.4
-
-# Enable IPv6, "yes" or "no".
-do-ip6: no
-
-# hide-version, "yes" or "no".
-hide-version: yes
-```
+別途参照
 
 ### 鍵ファイルの作成
 ```
