@@ -1,6 +1,6 @@
 
 ## DNS 設定（外向け）
-------------------
+------------------------------------------------------
 
 ### mount ファイルリスト
 | mount元	| mount先 |
@@ -102,7 +102,7 @@ dig . ns @198.41.0.4 +bufsize=1024 > /var/named/chroot/var/named/named.ca
 ```
 
 ### 正引きゾーンデータベース
-/var/named/chroot/var/named/xxx-domain-in.db設定（権限、GID要注意）
+* /var/named/chroot/var/named/xxx-domain-in.db設定（権限、GID要注意）
 ```
 $TTL    86400
 @       IN      SOA     ns1.xxx-domain.  root.ns1.xxx-domain.(
@@ -118,7 +118,7 @@ www     IN CNAME     ns1
 mail    IN CNAME     ns1
 ```
 
-/var/named/chroot/var/named/xxx-domain-ex.db設定（権限、GID要注意）
+* /var/named/chroot/var/named/xxx-domain-ex.db設定（権限、GID要注意）
 ```
 $TTL    86400
 @       IN      SOA     ns1.xxx-domain.  root.xxx-domain.(
@@ -136,7 +136,7 @@ mail    IN CNAME     ns1
 ```
 
 ### 逆引きゾーンデータベース
-/var/named/chroot/var/named/ccc.bbb.aaa.in-addr.arpa.db
+* /var/named/chroot/var/named/0.168.192.in-addr.arpa.db
 ```
 $TTL    86400
 @       IN      SOA     ns1.xxx-domain. root.ns1.xxx-domain.(
@@ -147,13 +147,28 @@ $TTL    86400
                         86400           ; negative (1 day)
 )
         IN      NS              ns1.xxx-domain.
+        IN      A               255.255.255.0
+dd2     IN      PTR             ns1.xxx-domain.
+```
+
+* /var/named/chroot/var/named/ccc.bbb.aaa.in-addr.arpa.db
+```
+$TTL    86400
+@       IN      SOA     ns1.xxx-domain. root.ns1.xxx-domain.(
+                        2016071501      ; serial
+                        3600            ; refresh (1 hour)
+                        900             ; retry (15 minutes)
+                        604800          ; expire (1 week)
+                        86400           ; negative (1 day)
+)
+        IN      NS              ns1.xxx-domain.
+        IN      A               255.255.255.240
 ddd     IN      PTR             ns1.xxx-domain.
 ```
 
 
-
 ## DNS 設定（内向け）
-------------------
+------------------------------------------------------------------------
 ### 設定
 /etc/unbound/local.d/local.conf
 ```
