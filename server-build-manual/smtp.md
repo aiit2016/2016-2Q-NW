@@ -38,5 +38,8 @@ systemctl start postfix
 ```
 
 ### ポートを開放
+```
 firewall-cmd --add-service=smtp --permanent
 firewall-cmd --reload
+```
+
