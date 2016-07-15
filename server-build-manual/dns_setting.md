@@ -163,7 +163,7 @@ ddd     IN      PTR             ns1.xxx-domain.
 
 
 
-## DNS 設定（外向け）
+## DNS 設定（内向け）
 ------------------
 ### 設定
 /etc/unbound/local.d/local.conf
