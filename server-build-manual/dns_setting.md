@@ -48,33 +48,21 @@ options {
         session-keyfile "/run/named/session.key";
 };
 
-#logging {
-#        channel default_debug {
-#                file "data/named.run";
-#                severity dynamic;
-#        };
+logging {
+        channel default_debug {
+                file "data/named.run";
+                severity dynamic;
+        };
 #        category lame-servers { null; };  # <= 追加（エラーログの出力制御）
-#};
-logging {					
-        channel default_debug {					
-					
-                file "/var/log/error.log";					
-                severity dynamic;					
-        };					
-       channel "log_queries" {					
-               file "/var/log/queries.log";					
-               severity info;					
-               print-time yes;					
-               print-category yes;					
-       };					
-       category queries { "log_queries"; };					
 };
 
 view "internal" {						
         match-clients {localnets; 192.168.0.0/24; aa4.bb4.cc4.0/20;};						
         recursion yes;						
-        include "/etc/named.rfc1912.zones";						
-						
+        zone "." IN {
+                type hint;
+                file "named.ca";
+        };
         zone "xxx-domain" {						
                 type master;						
                 file "/var/named/xxx-domain-in.db";						
@@ -85,13 +73,14 @@ view "internal" {
                 file "/var/named/0.168.192.in-addr.arpa.db";						
                 allow-update {none;};						
         };						
+        include "/etc/named.rfc1912.zones";						
+	include "/etc/named.root.key";
 };
 
 view "external" {                                   # <= 追加（固定 IP 環境なので）
         match-clients { any; };                     # <= 追加（固定 IP 環境なので）
         match-destinations { any; };                # <= 追加（固定 IP 環境なので）
         recursion no;                               # <= 追加（固定 IP 環境なので）
-        
         zone "xxx-domain" {
                 type master;
                 file "xxx-domain-ex.db";
