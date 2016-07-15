@@ -196,5 +196,6 @@ systemctl enable postfix　←　Postfix自動起動設定※CentOS7の場合
 
 ### ポート25番のOPEN
 ```
-firewall-cmd --add-service=smtp --permanent firewall-cmd --reload
+firewall-cmd --add-service=smtp --permanent
+firewall-cmd --reload
 ```
