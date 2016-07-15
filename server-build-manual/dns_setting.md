@@ -113,7 +113,7 @@ dig . ns @198.41.0.4 +bufsize=1024 > /var/named/chroot/var/named/named.ca
 ```
 
 ### 正引きゾーンデータベース
-/var/named/chroot/var/named/xxx-domain-in.db設定
+/var/named/chroot/var/named/xxx-domain-in.db設定（権限、GID要注意）
 ```
 $TTL    86400
 @       IN      SOA     ns1.xxx-domain.  root.ns1.xxx-domain.(
@@ -129,7 +129,7 @@ www     IN CNAME     ns1
 mail    IN CNAME     ns1
 ```
 
-/var/named/chroot/var/named/xxx-domain-ex.db設定
+/var/named/chroot/var/named/xxx-domain-ex.db設定（権限、GID要注意）
 ```
 $TTL    86400
 @       IN      SOA     ns1.xxx-domain.  root.xxx-domain.(
