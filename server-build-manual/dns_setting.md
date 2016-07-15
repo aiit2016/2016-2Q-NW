@@ -92,7 +92,7 @@ view "external" {                                   # <= 追加（固定 IP 環�
         match-destinations { any; };                # <= 追加（固定 IP 環境なので）
         recursion no;                               # <= 追加（固定 IP 環境なので）
         
-        zone "xxx-domain.com" {
+        zone "xxx-domain" {
                 type master;
                 file "xxx-domain-ex.db";
                 allow-query { any; };
@@ -123,7 +123,7 @@ $TTL    86400
                                       2419200    ; Expire
                                       86400 )    ; Minimum
         IN NS    ns1.xxx-domain.
-        IN MX 10 ns1.xxx-domain.com.
+        IN MX 10 ns1.xxx-domain.
 ns1     IN A     aa2.bb2.cc2.dd2
 www     IN CNAME     ns1
 mail    IN CNAME     ns1
@@ -139,7 +139,7 @@ $TTL    86400
                                       2419200    ; Expire
                                       86400 )    ; Minimum
         IN NS    ns1.xxx-domain.
-        IN MX 10 ns1.xxx-domain.com.
+        IN MX 10 ns1.xxx-domain.
 ns1     IN A     aaa.bbb.ccc.ddd
 www     IN CNAME     ns1
 mail    IN CNAME     ns1
@@ -150,7 +150,7 @@ mail    IN CNAME     ns1
 /var/named/chroot/var/named/ccc.bbb.aaa.in-addr.arpa.db
 ```
 $TTL    86400
-@       IN      SOA     ns1.xxx-domain.com. root.ns1.xxx-domain.(
+@       IN      SOA     ns1.xxx-domain. root.ns1.xxx-domain.(
                         2016071501      ; serial
                         3600            ; refresh (1 hour)
                         900             ; retry (15 minutes)
