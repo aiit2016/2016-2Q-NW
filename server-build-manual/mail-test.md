@@ -1,3 +1,15 @@
+## TEST by telnet
+```
+telnet mail.port25.com 25
+EHLO server.example.com
+MAIL FROM: <support@port25.com>
+RCPT TO: <support@port25.com>
+DATA
+xxxxxx
+
+.
+QUIT
+```
 
 ## メールユーザ追加
 ------------------------------------------------------------------------
